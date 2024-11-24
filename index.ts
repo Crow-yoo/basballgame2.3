@@ -216,6 +216,8 @@ const applicationStart = async (): Promise<void> => {
         await start();
     } else if (input === GameState.showRecords) {
         showRecords();
+    } else if (input === '3') { // 통계 선택
+        showStats();
     } else if (input === GameState.endGame) {
         console.log('\n애플리케이션이 종료되었습니다.');
         inputInterface.close();
@@ -223,6 +225,31 @@ const applicationStart = async (): Promise<void> => {
         console.log('잘못된 입력입니다. 1, 2, 3, 9를 입력해주세요.');
         applicationStart(); // 게임 기록을 확인한 후 다시 입력 받기
     }
+};
+
+const showStats = (): void => {
+    if (gameRecord.results.length === 0) {
+        console.log('\n아직 진행된 게임이 없습니다.\n');
+    } else {
+        // 횟수 통계 계산
+        const attempts = gameRecord.results.map(result => result.attempts);
+        const minAttempts = Math.min(...attempts);
+        const maxAttempts = Math.max(...attempts);
+        const avgAttempts = (attempts.reduce((sum, val) => sum + val, 0) / attempts.length).toFixed(2);
+
+        // 승리 횟수 통계
+        const totalUserWins = gameRecord.userWins;
+        const totalComputerWins = gameRecord.computerWins;
+
+        console.log('\n------- 통계 -------');
+        console.log(`가장 적은 시도 횟수: ${minAttempts} (기록 ID: ${gameRecord.results.find(result => result.attempts === minAttempts)?.id})`);
+        console.log(`가장 많은 시도 횟수: ${maxAttempts} (기록 ID: ${gameRecord.results.find(result => result.attempts === maxAttempts)?.id})`);
+        console.log(`평균 시도 횟수: ${avgAttempts}`);
+        console.log(`사용자 승리 횟수: ${totalUserWins}`);
+        console.log(`컴퓨터 승리 횟수: ${totalComputerWins}`);
+        console.log('-------------------');
+    }
+    applicationStart();
 };
 
 applicationStart();
