@@ -189,23 +189,35 @@ const showRecords = (): void => {
         return;
     }
 
-    const formatHistory = (history: { userInput: BallNumber[]; hint: string }[]) =>
-        history
-            .map(({ userInput, hint }, index) => 
-                `${index + 1} 
-                입력: ${userInput.join('') || '-'} / 결과: ${hint}`)
-            .join('\n');
+    // 기록 요약 생성
+    const recordsSummary = gameRecord.results
+        .map(
+            (result) =>
+                `기록 ID: ${result.id} | 시작: ${result.startTime} | 종료: ${result.endTime} | 횟수: ${result.attempts}회 | 승리자: ${
+                    result.winner === 'User' ? '사용자' : '컴퓨터'
+                }`
+        )
+        .join('\n');
 
-    const formatRecord = (result: GameResult) => 
-        ` 기록 ID: ${result.id} / 시작시간: ${result.startTime} / 종료시간: ${result.endTime}
-            총 시도 횟수: ${result.attempts}회
-            승리자: ${result.winner === 'User' ? '사용자' : '컴퓨터'}
-            게임 진행 내역:
-            ${formatHistory(result.history)}`;
+    // 게임 진행 내역 (선택적으로 출력 가능)
+    const recordsDetails = gameRecord.results
+        .map(
+            (result) =>
+                `\n[기록 ID: ${result.id}]\n` +
+                result.history
+                    .map(
+                        ({ userInput, hint }, index) =>
+                            `  ${index + 1}. 입력: ${userInput.length > 0 ? userInput.join('') : '-'} / 결과: ${hint}`
+                    )
+                    .join('\n')
+        )
+        .join('\n');
 
-    console.log('\n------- 게임 기록 -------');
-    console.log(gameRecord.results.map(formatRecord).join('\n-------------------------\n'));
-    console.log('------- 기록 종료 -------\n');
+    console.log('\n------- 요약된 게임 기록 -------');
+    console.log(recordsSummary);
+    console.log('\n------- 게임 진행 상세 내역 -------');
+    console.log(recordsDetails);
+    console.log('-------------------------\n------- 기록 종료 -------\n');
 
     applicationStart();
 };
@@ -242,7 +254,6 @@ const showStats = (): void => {
         return;
     }
 
-    // 데이터 준비
     const userWinCounts = gameRecord.results
         .filter(result => result.winner === 'User')
         .map(result => result.attempts);
@@ -251,22 +262,25 @@ const showStats = (): void => {
         .filter(result => result.winner === 'Computer')
         .map(result => result.attempts);
 
-    const calculateAverage = (values: number[]): string => 
-        (values.reduce((sum, count) => sum + count, 0) / values.length || 0).toFixed(2);
+    const calculateAverage = (values: number[]): string =>
+        values.length > 0
+            ? (values.reduce((sum, count) => sum + count, 0) / values.length).toFixed(2)
+            : '0.00';
 
-    // 승리 및 패배 통계 계산
+    const safeMin = (values: number[]): number =>
+        values.length > 0 ? Math.min(...values) : 0;
+
     const stats = {
-        mostAppliedUserWins: Math.max(...userWinCounts, 0),
-        mostAppliedComputerWins: Math.max(...computerWinCounts, 0),
+        mostAppliedUserWins: userWinCounts.length,
+        mostAppliedComputerWins: computerWinCounts.length,
         maxUserWins: Math.max(...userWinCounts, 0),
         maxComputerWins: Math.max(...computerWinCounts, 0),
-        minUserWins: Math.min(...userWinCounts, Infinity),
-        minComputerWins: Math.min(...computerWinCounts, Infinity),
+        minUserWins: safeMin(userWinCounts),
+        minComputerWins: safeMin(computerWinCounts),
         avgUserWins: calculateAverage(userWinCounts),
         avgComputerWins: calculateAverage(computerWinCounts),
     };
 
-    // 출력
     console.log('\n------- 통계 -------');
     console.log(`가장 많이 적용된 승리 횟수: ${stats.mostAppliedUserWins}`);
     console.log(`가장 많이 적용된 패배 횟수: ${stats.mostAppliedComputerWins}`);
@@ -276,10 +290,10 @@ const showStats = (): void => {
     console.log(`가장 적은 값으로 적용된 패배 횟수: ${stats.minComputerWins}`);
     console.log(`적용된 승리 횟수 평균: ${stats.avgUserWins}`);
     console.log(`적용된 패배 횟수 평균: ${stats.avgComputerWins}`);
-    console.log(`컴퓨터가 가장 많이 승리한 승리 횟수: ${stats.maxComputerWins}`);
-    console.log(`사용자가 가장 많이 승리한 승리 횟수: ${stats.maxUserWins}`);
-    console.log('-------------------');
+    console.log('-------------------\n');
 
     applicationStart();
 };
+
+
 applicationStart();
