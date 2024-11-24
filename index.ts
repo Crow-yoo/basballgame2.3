@@ -181,7 +181,7 @@ const start = async (): Promise<void> => {
     await playGame(computer, user, startTime);
 };
 
-// 기록 함수
+// 기록 함수 (상세기록 어떻게 할지 생각필요)
 const showRecords = (): void => {
     if (gameRecord.results.length === 0) {
         console.log('\n아직 진행된 게임이 없습니다.\n');
