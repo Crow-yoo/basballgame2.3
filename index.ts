@@ -185,21 +185,28 @@ const start = async (): Promise<void> => {
 const showRecords = (): void => {
     if (gameRecord.results.length === 0) {
         console.log('\n아직 진행된 게임이 없습니다.\n');
-    } else {
-        gameRecord.results.forEach((result) => {
-            console.log(
-                `- [${result.id}] / 시작시간: ${result.startTime} / 종료시간: ${result.endTime} / 횟수: ${result.attempts} / 승리자: ${result.winner === 'User' ? '사용자' : '컴퓨터'}`
-            );
-            console.log('\n컴퓨터가 숫자를 뽑았습니다.\n');
-            result.history.forEach(({ userInput, hint }) => {
-                if (userInput.length > 0) {
-                    console.log(`숫자를 입력해주세요 : ${userInput.join('')}`);
-                }
-                console.log(hint);
-            });
-        });
+        applicationStart();
+        return;
     }
-    console.log('-------기록 종료-------');
+
+    const formatHistory = (history: { userInput: BallNumber[]; hint: string }[]) =>
+        history
+            .map(({ userInput, hint }, index) => 
+                `${index + 1} 
+                입력: ${userInput.join('') || '-'} / 결과: ${hint}`)
+            .join('\n');
+
+    const formatRecord = (result: GameResult) => 
+        ` 기록 ID: ${result.id} / 시작시간: ${result.startTime} / 종료시간: ${result.endTime}
+            총 시도 횟수: ${result.attempts}회
+            승리자: ${result.winner === 'User' ? '사용자' : '컴퓨터'}
+            게임 진행 내역:
+            ${formatHistory(result.history)}`;
+
+    console.log('\n------- 게임 기록 -------');
+    console.log(gameRecord.results.map(formatRecord).join('\n-------------------------\n'));
+    console.log('------- 기록 종료 -------\n');
+
     applicationStart();
 };
 
@@ -227,29 +234,52 @@ const applicationStart = async (): Promise<void> => {
     }
 };
 
+//통계 기능 구현
 const showStats = (): void => {
     if (gameRecord.results.length === 0) {
         console.log('\n아직 진행된 게임이 없습니다.\n');
-    } else {
-        // 횟수 통계 계산
-        const attempts = gameRecord.results.map(result => result.attempts);
-        const minAttempts = Math.min(...attempts);
-        const maxAttempts = Math.max(...attempts);
-        const avgAttempts = (attempts.reduce((sum, val) => sum + val, 0) / attempts.length).toFixed(2);
-
-        // 승리 횟수 통계
-        const totalUserWins = gameRecord.userWins;
-        const totalComputerWins = gameRecord.computerWins;
-
-        console.log('\n------- 통계 -------');
-        console.log(`가장 적은 시도 횟수: ${minAttempts} (기록 ID: ${gameRecord.results.find(result => result.attempts === minAttempts)?.id})`);
-        console.log(`가장 많은 시도 횟수: ${maxAttempts} (기록 ID: ${gameRecord.results.find(result => result.attempts === maxAttempts)?.id})`);
-        console.log(`평균 시도 횟수: ${avgAttempts}`);
-        console.log(`사용자 승리 횟수: ${totalUserWins}`);
-        console.log(`컴퓨터 승리 횟수: ${totalComputerWins}`);
-        console.log('-------------------');
+        applicationStart();
+        return;
     }
+
+    // 데이터 준비
+    const userWinCounts = gameRecord.results
+        .filter(result => result.winner === 'User')
+        .map(result => result.attempts);
+
+    const computerWinCounts = gameRecord.results
+        .filter(result => result.winner === 'Computer')
+        .map(result => result.attempts);
+
+    const calculateAverage = (values: number[]): string => 
+        (values.reduce((sum, count) => sum + count, 0) / values.length || 0).toFixed(2);
+
+    // 승리 및 패배 통계 계산
+    const stats = {
+        mostAppliedUserWins: Math.max(...userWinCounts, 0),
+        mostAppliedComputerWins: Math.max(...computerWinCounts, 0),
+        maxUserWins: Math.max(...userWinCounts, 0),
+        maxComputerWins: Math.max(...computerWinCounts, 0),
+        minUserWins: Math.min(...userWinCounts, Infinity),
+        minComputerWins: Math.min(...computerWinCounts, Infinity),
+        avgUserWins: calculateAverage(userWinCounts),
+        avgComputerWins: calculateAverage(computerWinCounts),
+    };
+
+    // 출력
+    console.log('\n------- 통계 -------');
+    console.log(`가장 많이 적용된 승리 횟수: ${stats.mostAppliedUserWins}`);
+    console.log(`가장 많이 적용된 패배 횟수: ${stats.mostAppliedComputerWins}`);
+    console.log(`가장 큰 값으로 적용된 승리 횟수: ${stats.maxUserWins}`);
+    console.log(`가장 큰 값으로 적용된 패배 횟수: ${stats.maxComputerWins}`);
+    console.log(`가장 적은 값으로 적용된 승리 횟수: ${stats.minUserWins}`);
+    console.log(`가장 적은 값으로 적용된 패배 횟수: ${stats.minComputerWins}`);
+    console.log(`적용된 승리 횟수 평균: ${stats.avgUserWins}`);
+    console.log(`적용된 패배 횟수 평균: ${stats.avgComputerWins}`);
+    console.log(`컴퓨터가 가장 많이 승리한 승리 횟수: ${stats.maxComputerWins}`);
+    console.log(`사용자가 가장 많이 승리한 승리 횟수: ${stats.maxUserWins}`);
+    console.log('-------------------');
+
     applicationStart();
 };
-
 applicationStart();
