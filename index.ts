@@ -232,31 +232,40 @@ const applicationStart = async (): Promise<void> => {
     }
 };
 
-//통계 기능 구현
+// 통계 기능 구현
 const showStats = (): void => {
     if (gameRecord.results.length === 0) {
         console.log('\n아직 진행된 게임이 없습니다.\n');
         applicationStart();
         return;
     }
-
     const userWinCounts = gameRecord.results
         .filter(result => result.winner === 'User')
         .map(result => result.attempts);
-
     const computerWinCounts = gameRecord.results
         .filter(result => result.winner === 'Computer')
         .map(result => result.attempts);
-
+    const maxAttemptCounts = gameRecord.results.map(result => result.attempts); // 입력한 최대 시도 횟수 데이터
     const calculateAverage = (values: number[]): string =>
         values.length > 0
             ? (values.reduce((sum, count) => sum + count, 0) / values.length).toFixed(2)
             : '0.00';
-
     const safeMin = (values: number[]): number =>
         values.length > 0 ? Math.min(...values) : 0;
-
+    const safeMax = (values: number[]): number =>
+        values.length > 0 ? Math.max(...values) : 0;
+    const calculateMostFrequent = (values: number[]): number => {
+        if (values.length === 0) return 0;
+        const frequency: Record<number, number> = {};
+        values.forEach(value => {
+            frequency[value] = (frequency[value] || 0) + 1;
+        });
+        const maxFrequency = Math.max(...Object.values(frequency));
+        return parseInt(Object.keys(frequency).find(key => frequency[parseInt(key)] === maxFrequency) || '0', 10);
+    };
     const stats = {
+        maxAttempts: safeMax(maxAttemptCounts),
+        minAttempts: safeMin(maxAttemptCounts),
         mostAppliedUserWins: userWinCounts.length,
         mostAppliedComputerWins: computerWinCounts.length,
         maxUserWins: Math.max(...userWinCounts, 0),
@@ -265,9 +274,12 @@ const showStats = (): void => {
         minComputerWins: safeMin(computerWinCounts),
         avgUserWins: calculateAverage(userWinCounts),
         avgComputerWins: calculateAverage(computerWinCounts),
+        mostFrequentUserWin: calculateMostFrequent(userWinCounts),
+        mostFrequentComputerWin: calculateMostFrequent(computerWinCounts),
     };
-
     console.log('\n------- 통계 -------');
+    console.log(`가장 적은 횟수: ${stats.minAttempts}회`);
+    console.log(`가장 많은 횟수: ${stats.maxAttempts}회`);
     console.log(`가장 많이 적용된 승리 횟수: ${stats.mostAppliedUserWins}`);
     console.log(`가장 많이 적용된 패배 횟수: ${stats.mostAppliedComputerWins}`);
     console.log(`가장 큰 값으로 적용된 승리 횟수: ${stats.maxUserWins}`);
@@ -276,8 +288,9 @@ const showStats = (): void => {
     console.log(`가장 적은 값으로 적용된 패배 횟수: ${stats.minComputerWins}`);
     console.log(`적용된 승리 횟수 평균: ${stats.avgUserWins}`);
     console.log(`적용된 패배 횟수 평균: ${stats.avgComputerWins}`);
+    console.log(`컴퓨터가 가장 많이 승리한 승리 횟수: ${stats.mostFrequentComputerWin}회`);
+    console.log(`사용자가 가장 많이 승리한 승리 횟수: ${stats.mostFrequentUserWin}회`);
     console.log('-------------------\n');
-
     applicationStart();
 };
 
