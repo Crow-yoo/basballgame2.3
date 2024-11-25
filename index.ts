@@ -117,25 +117,26 @@ const finishGame = (startTime: Date, user : User, winner : 'User' | 'Computer'):
     const endTime = new Date();
 
     gameRecord.totalGames++;
+    const userMessage = '';
+
     if (winner === 'User') {
         const userMessage = '사용자가 승리하였습니다.\n\n3개의 숫자를 모두 맞히셨습니다.\n-------게임 종료-------'
         console.log(userMessage);
         gameRecord.userWins++;
-        user.history.push({ userInput: [], hint: userMessage });
     } else {
         const computerMessage = '컴퓨터가 승리하였습니다.\n-------게임 종료-------'
         console.log(computerMessage);
         gameRecord.computerWins++;
-        user.history.push({ userInput: [], hint: computerMessage });
     }
 
+    // 게임 기록 저장
     gameRecord.results.push({
         id: gameRecord.results.length + 1,
         startTime: formatDateTime(startTime), 
         endTime: formatDateTime(endTime),     
         attempts : user.submitCount,
         winner,
-        history : user.history,
+        history : [...user.history, { userInput: [], hint: userMessage }], // 승리 메시지를 힌트로 추가
     });
 
     applicationStart(); // 게임 종료 후 다시 입력 받기
@@ -189,32 +190,21 @@ const showRecords = (): void => {
         return;
     }
 
-    // // 기록 요약 생성
-    // const recordsSummary = gameRecord.results
-    //     .map(
-    //         (result) =>
-    //             `기록 ID: ${result.id} | 시작: ${result.startTime} | 종료: ${result.endTime} | 횟수: ${result.attempts}회 | 승리자: ${
-    //                 result.winner === 'User' ? '사용자' : '컴퓨터'
-    //             }`
-    //     )
-    //     .join('\n');
 
     // 게임 진행 내역 (선택적으로 출력 가능)
     const recordsDetails = gameRecord.results
         .map(
             (result) =>
-                `\n[게임 회차: ${result.id}]\n` +
-                result.history
-                    .map(
-                        ({ userInput, hint }, index) =>
-                            `  ${index + 1}. 입력: ${userInput.length > 0 ? userInput.join('') : '-'} \n 결과: ${hint}`
-                    )
-                    .join('\n')
-        )
-        .join('\n');
+        `\n[게임 회차: ${result.id}]
+        시작: ${result.startTime} | 종료: ${result.endTime} | 총 시도: ${result.attempts}회
+        승리자: ${result.winner === 'User' ? '사용자' : '컴퓨터'}
+        진행 내역: ${result.history
+        .filter(({ userInput }) => userInput.length > 0) // 입력값이 있는 경우만 출력
+        .map(({ userInput, hint }, index) =>
+        ` ${index + 1}. 입력: ${userInput.join('')} | 결과: ${hint}`).join('\n')}
+        결과 메시지: ${result.history[result.history.length - 1]?.hint || ''}`)
+        .join('\n-------------------------\n');
 
-    // console.log('\n------- 요약된 게임 기록 -------');
-    // console.log(recordsSummary);
     console.log('\n------- 게임 진행 상세 내역 -------');
     console.log(recordsDetails);
     console.log('-------------------------\n------- 기록 종료 -------\n');
