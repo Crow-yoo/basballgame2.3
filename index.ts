@@ -118,12 +118,12 @@ const finishGame = (startTime: Date, user : User, winner : 'User' | 'Computer'):
 
     gameRecord.totalGames++;
     if (winner === 'User') {
-        const userMessage = '\n사용자가 승리하였습니다.\n\n3개의 숫자를 모두 맞히셨습니다.\n-------게임 종료-------'
+        const userMessage = '사용자가 승리하였습니다.\n\n3개의 숫자를 모두 맞히셨습니다.\n-------게임 종료-------'
         console.log(userMessage);
         gameRecord.userWins++;
         user.history.push({ userInput: [], hint: userMessage });
     } else {
-        const computerMessage = '\n컴퓨터가 승리하였습니다.\n-------게임 종료-------'
+        const computerMessage = '컴퓨터가 승리하였습니다.\n-------게임 종료-------'
         console.log(computerMessage);
         gameRecord.computerWins++;
         user.history.push({ userInput: [], hint: computerMessage });
@@ -189,32 +189,32 @@ const showRecords = (): void => {
         return;
     }
 
-    // 기록 요약 생성
-    const recordsSummary = gameRecord.results
-        .map(
-            (result) =>
-                `기록 ID: ${result.id} | 시작: ${result.startTime} | 종료: ${result.endTime} | 횟수: ${result.attempts}회 | 승리자: ${
-                    result.winner === 'User' ? '사용자' : '컴퓨터'
-                }`
-        )
-        .join('\n');
+    // // 기록 요약 생성
+    // const recordsSummary = gameRecord.results
+    //     .map(
+    //         (result) =>
+    //             `기록 ID: ${result.id} | 시작: ${result.startTime} | 종료: ${result.endTime} | 횟수: ${result.attempts}회 | 승리자: ${
+    //                 result.winner === 'User' ? '사용자' : '컴퓨터'
+    //             }`
+    //     )
+    //     .join('\n');
 
     // 게임 진행 내역 (선택적으로 출력 가능)
     const recordsDetails = gameRecord.results
         .map(
             (result) =>
-                `\n[기록 ID: ${result.id}]\n` +
+                `\n[게임 회차: ${result.id}]\n` +
                 result.history
                     .map(
                         ({ userInput, hint }, index) =>
-                            `  ${index + 1}. 입력: ${userInput.length > 0 ? userInput.join('') : '-'} / 결과: ${hint}`
+                            `  ${index + 1}. 입력: ${userInput.length > 0 ? userInput.join('') : '-'} \n 결과: ${hint}`
                     )
                     .join('\n')
         )
         .join('\n');
 
-    console.log('\n------- 요약된 게임 기록 -------');
-    console.log(recordsSummary);
+    // console.log('\n------- 요약된 게임 기록 -------');
+    // console.log(recordsSummary);
     console.log('\n------- 게임 진행 상세 내역 -------');
     console.log(recordsDetails);
     console.log('-------------------------\n------- 기록 종료 -------\n');
